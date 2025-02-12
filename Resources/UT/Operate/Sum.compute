@@ -1,0 +1,24 @@
+#pragma kernel Forward
+#include "BaseFuncion.cginc"
+
+uint dim;
+uint total_offset_length;
+
+StructuredBuffer<float> a;
+StructuredBuffer<uint> a_stride;
+StructuredBuffer<uint> total_offset;
+
+RWStructuredBuffer<float> result;
+StructuredBuffer<uint> result_stride;
+
+[numthreads(512, 1, 1)]
+void Forward(uint3 id : SV_DispatchThreadID)
+{
+    const uint a_id = calculate_new_index(dim, id.x, result_stride, a_stride);
+    float s = 0.0;
+    for (uint i = 0; i < total_offset_length; i++)
+    {
+        s += a[a_id + total_offset[i]];
+    }
+    result[id.x] = s;
+}

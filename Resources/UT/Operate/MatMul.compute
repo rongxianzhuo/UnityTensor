@@ -1,0 +1,25 @@
+#pragma kernel Forward
+#include "BaseFuncion.cginc"
+
+uint dim;
+uint p;
+
+StructuredBuffer<float> a;
+StructuredBuffer<uint> a_stride;
+StructuredBuffer<float> b;
+StructuredBuffer<uint> b_stride;
+RWStructuredBuffer<float> c;
+StructuredBuffer<uint> c_stride;
+
+[numthreads(512, 1, 1)]
+void Forward(uint3 id : SV_DispatchThreadID)
+{
+    const uint a_id0 = calculate_new_index(dim, id.x, dim - 1, c_stride, a_stride);
+    const uint b_id0 = calculate_new_index(dim, id.x, dim - 2, c_stride, b_stride);
+    float sum = 0;
+    for (uint i = 0; i < p; i++)
+    {
+        sum += a[a_id0 + i * a_stride[dim - 1]] * b[b_id0 + i * b_stride[dim - 2]];
+    }
+    c[id.x] = sum;
+}

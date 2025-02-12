@@ -1,0 +1,31 @@
+#pragma kernel CSMain
+#include "BaseFuncion.cginc"
+
+uint dim;
+float t;
+float beta1;
+float beta2;
+float eps;
+float weight_decay;
+float learning_rate;
+StructuredBuffer<float> g;
+StructuredBuffer<uint> g_stride;
+RWStructuredBuffer<float> m;
+RWStructuredBuffer<float> v;
+RWStructuredBuffer<float> theta;
+StructuredBuffer<uint> theta_stride;
+
+[numthreads(512, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    const uint g_id = calculate_new_index(dim, id.x, theta_stride, g_stride);
+    const float weight_decay_g = g[g_id] + theta[id.x] * weight_decay;
+    float cm = beta1 * m[id.x] + (1.0 - beta1) * weight_decay_g;
+    m[id.x] = cm;
+    float cv = beta2 * v[id.x] + (1.0 - beta2) * weight_decay_g * weight_decay_g;
+    v[id.x] = cv;
+    // 加 abs 只是为了避免unity警告
+    cm = cm/ (1.0 - pow(abs(beta1), t));
+    cv = cv/ (1.0 - pow(abs(beta2), t));
+    theta[id.x] = theta[id.x] - learning_rate * cm / (sqrt(cv) + eps);
+}

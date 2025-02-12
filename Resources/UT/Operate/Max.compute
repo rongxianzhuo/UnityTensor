@@ -1,0 +1,30 @@
+#pragma kernel Forward
+#include "BaseFuncion.cginc"
+
+uint dim;
+uint max_dim_size;
+uint max_dim_stride;
+
+StructuredBuffer<float> a;
+StructuredBuffer<uint> a_stride;
+
+RWStructuredBuffer<float> result;
+RWStructuredBuffer<uint> result_max_index;
+StructuredBuffer<uint> result_stride;
+
+[numthreads(512, 1, 1)]
+void Forward(uint3 id : SV_DispatchThreadID)
+{
+    const uint a_id = calculate_new_index(dim, id.x, result_stride, a_stride);
+    float m = a[a_id];
+    uint max_index = 0;
+    for (uint i = 1; i < max_dim_size; i++)
+    {
+        float j = a[a_id + i * max_dim_stride];
+        if (m >= j) continue;
+        m = j;
+        max_index = i;
+    }
+    result[id.x] = m;
+    result_max_index[id.x] = max_index;
+}

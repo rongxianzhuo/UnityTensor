@@ -1,0 +1,11 @@
+#pragma kernel Forward
+
+StructuredBuffer<float> t;
+RWStructuredBuffer<float> a;
+StructuredBuffer<float> b;
+
+[numthreads(512, 1, 1)]
+void Forward(uint3 id : SV_DispatchThreadID)
+{
+    a[id.x] = a[id.x] * (1.0 - t[id.x]) + b[id.x] * t[id.x];
+}

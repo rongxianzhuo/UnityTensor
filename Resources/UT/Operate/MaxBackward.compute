@@ -1,0 +1,21 @@
+#pragma kernel Forward
+#include "BaseFuncion.cginc"
+
+uint dim;
+uint max_dim_stride;
+uint max_dim_size;
+
+StructuredBuffer<float> input_gradient;
+StructuredBuffer<uint> input_gradient_stride;
+StructuredBuffer<uint> result_max_index;
+
+RWStructuredBuffer<float> output_gradient;
+StructuredBuffer<uint> output_gradient_stride;
+
+[numthreads(512, 1, 1)]
+void Forward(uint3 id : SV_DispatchThreadID)
+{
+    uint input_id = calculate_new_index(dim, id.x, output_gradient_stride, input_gradient_stride);
+    if ((id.x / max_dim_stride) % max_dim_size == result_max_index[input_id]) output_gradient[id.x] = input_gradient[input_id];
+    else output_gradient[id.x] = 0.0;
+}

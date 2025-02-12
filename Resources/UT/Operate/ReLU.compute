@@ -1,0 +1,37 @@
+#pragma kernel Forward
+#pragma kernel Backward
+#include "BaseFuncion.cginc"
+
+uint dim;
+
+RWStructuredBuffer<float> rw_output;
+StructuredBuffer<uint> rw_output_stride;
+
+StructuredBuffer<float> input;
+StructuredBuffer<uint> input_stride;
+
+StructuredBuffer<float> r_output;
+StructuredBuffer<uint> r_output_stride;
+
+StructuredBuffer<float> output_gradient;
+StructuredBuffer<uint> output_gradient_stride;
+
+RWStructuredBuffer<float> input_gradient;
+StructuredBuffer<uint> input_gradient_stride;
+
+
+[numthreads(512, 1, 1)]
+void Forward(uint3 id : SV_DispatchThreadID)
+{
+    const uint input_id = calculate_new_index(dim, id.x, rw_output_stride, input_stride);
+    rw_output[id.x] = max(input[input_id], 0.0);
+}
+
+[numthreads(512, 1, 1)]
+void Backward(uint3 id : SV_DispatchThreadID)
+{
+    const uint r_output_id = calculate_new_index(dim, id.x, input_gradient_stride, r_output_stride);
+    const uint output_gradient_id = calculate_new_index(dim, id.x, input_gradient_stride, output_gradient_stride);
+    if (r_output[r_output_id] <= 0.0) input_gradient[id.x] = 0.0;
+    else input_gradient[id.x] = output_gradient[output_gradient_id];
+}

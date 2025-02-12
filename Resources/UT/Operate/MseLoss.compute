@@ -1,0 +1,21 @@
+#pragma kernel Forward
+#include "BaseFuncion.cginc"
+
+uint n;
+uint dim;
+
+StructuredBuffer<float> a;
+StructuredBuffer<uint> a_stride;
+
+StructuredBuffer<float> target;
+StructuredBuffer<uint> target_stride;
+
+RWStructuredBuffer<float> gradient;
+StructuredBuffer<uint> gradient_stride;
+
+[numthreads(512, 1, 1)]
+void Forward(uint3 id : SV_DispatchThreadID)
+{
+    const uint2 new_id = calculate_new_index(dim, id.x, gradient_stride, a_stride, target_stride);
+    gradient[id.x] = 2 * (a[new_id.x] - target[new_id.y]) / n;
+}
